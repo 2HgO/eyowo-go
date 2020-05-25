@@ -35,7 +35,7 @@ func TestNewClient(t *testing.T) {
 		name string
 		args args
 		err  error
-		want *client
+		want *Client
 	}{
 		{
 			name: "Create a new eyowo client",
@@ -44,7 +44,7 @@ func TestNewClient(t *testing.T) {
 				secret: "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k",
 				env:    SANDBOX,
 			},
-			want: &client{
+			want: &Client{
 				appKey:      "ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r",
 				appSecret:   "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k",
 				environment: SANDBOX,
@@ -89,7 +89,7 @@ func TestNewClient(t *testing.T) {
 
 func TestClientHasValidToken(t *testing.T) {
 	type args struct {
-		client *client
+		client *Client
 	}
 	testcases := []struct {
 		name string
@@ -126,7 +126,7 @@ func TestClientSetRefreshToken(t *testing.T) {
 }
 
 func TestClientSetClientTimeout(t *testing.T) {
-	
+
 }
 
 func TestClientBuyVTU(t *testing.T) {
@@ -259,7 +259,7 @@ func TestClientTransferToPhone(t *testing.T) {
 
 func TestClientRefreshAccessToken(t *testing.T) {
 	type args struct {
-		client *client
+		client *Client
 	}
 	testcases := []struct {
 		name    string

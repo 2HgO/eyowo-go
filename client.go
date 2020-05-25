@@ -14,7 +14,7 @@ var (
 	defaultTimeout = time.Minute
 )
 
-type client struct {
+type Client struct {
 	// appKey is the application's app key
 	appKey string
 	// appSecret is the application's app secret
@@ -34,7 +34,7 @@ type client struct {
 }
 
 // NewClient creates and returns a new eyowo API client
-func NewClient(appKey, appSecret string, env environment) (*client, error) {
+func NewClient(appKey, appSecret string, env environment) (*Client, error) {
 	if strings.Trim(appKey, " ") == "" {
 		return nil, InvalidAppKey
 	}
@@ -44,7 +44,7 @@ func NewClient(appKey, appSecret string, env environment) (*client, error) {
 	if env != SANDBOX && env != PRODUCTION {
 		return nil, InvalidEnvironment
 	}
-	return &client{
+	return &Client{
 		appKey:      appKey,
 		appSecret:   appSecret,
 		environment: env,
@@ -53,38 +53,38 @@ func NewClient(appKey, appSecret string, env environment) (*client, error) {
 }
 
 // HasValidToken validates whether or not the client has a valid access token
-func (c *client) HasValidToken() bool {
+func (c *Client) HasValidToken() bool {
 	return c.lastRefresh != nil && c.lastRefresh.Add(c.expiresIn).After(time.Now())
 }
 
 // GetAccessToken returns the client's access token
-func (c *client) GetAccessToken() string {
+func (c *Client) GetAccessToken() string {
 	return c.accessToken
 }
 
 // GetRefreshToken returns the client's refresh token
-func (c *client) GetRefreshToken() string {
+func (c *Client) GetRefreshToken() string {
 	return c.refreshToken
 }
 
 // SetAccessToken sets the access token for a client
-func (c *client) SetAccessToken(s string) {
+func (c *Client) SetAccessToken(s string) {
 	c.accessToken = s
 }
 
 // SetRefreshToken sets the refresh token for a client
-func (c *client) SetRefreshToken(s string) {
+func (c *Client) SetRefreshToken(s string) {
 	c.refreshToken = s
 }
 
 // SetClientTimeout sets the timeout for requests by the client
 // The default timeout value is 1 minute
-func (c *client) SetClientTimeout(t time.Duration) {
+func (c *Client) SetClientTimeout(t time.Duration) {
 	c.httpClient.Timeout = t
 }
 
 // BuyVTU performs a Virtual Top-Up (VTU) for a mobile number
-func (c *client) BuyVTU(recipientMobileNumber string, amount uint, provider provider) (*Response, error) {
+func (c *Client) BuyVTU(recipientMobileNumber string, amount uint, provider provider) (*Response, error) {
 	payload := map[string]interface{}{
 		"amount":   amount,
 		"mobile":   recipientMobileNumber,
@@ -94,7 +94,7 @@ func (c *client) BuyVTU(recipientMobileNumber string, amount uint, provider prov
 }
 
 // GetBalance returns the account balance for an eyowo account
-func (c *client) GetBalance(mobileNumber string) (*Response, error) {
+func (c *Client) GetBalance(mobileNumber string) (*Response, error) {
 	payload := map[string]interface{}{
 		"mobile": mobileNumber,
 	}
@@ -102,7 +102,7 @@ func (c *client) GetBalance(mobileNumber string) (*Response, error) {
 }
 
 // ValidateUser valdates whether or not a mobile number has an associated eyowo account
-func (c *client) ValidateUser(mobileNumber string) (*Response, error) {
+func (c *Client) ValidateUser(mobileNumber string) (*Response, error) {
 	payload := map[string]interface{}{
 		"mobile": mobileNumber,
 	}
@@ -110,7 +110,7 @@ func (c *client) ValidateUser(mobileNumber string) (*Response, error) {
 }
 
 // AuthenticateUser performs an authentication flow for a user
-func (c *client) AuthenticateUser(mobileNumber, factor string, passcode ...string) (*Response, error) {
+func (c *Client) AuthenticateUser(mobileNumber, factor string, passcode ...string) (*Response, error) {
 	payload := map[string]interface{}{
 		"mobile": mobileNumber,
 		"factor": factor,
@@ -140,7 +140,7 @@ func (c *client) AuthenticateUser(mobileNumber, factor string, passcode ...strin
 }
 
 // TransferToBank transfers money from the client's user's account to the specified bank account
-func (c *client) TransferToBank(amount uint, accountName, accountNumber, bankCode string) (*Response, error) {
+func (c *Client) TransferToBank(amount uint, accountName, accountNumber, bankCode string) (*Response, error) {
 	payload := map[string]interface{}{
 		"amount":        amount,
 		"accountNumber": accountNumber,
@@ -151,7 +151,7 @@ func (c *client) TransferToBank(amount uint, accountName, accountNumber, bankCod
 }
 
 // TransferToBank transfers money from the client's user's account to the specified eyowo account
-func (c *client) TransferToPhone(amount uint, recipientMobileNumber string) (*Response, error) {
+func (c *Client) TransferToPhone(amount uint, recipientMobileNumber string) (*Response, error) {
 	payload := map[string]interface{}{
 		"amount": amount,
 		"mobile": recipientMobileNumber,
@@ -160,7 +160,7 @@ func (c *client) TransferToPhone(amount uint, recipientMobileNumber string) (*Re
 }
 
 // RefreshAccessToken refreshes the client's access token using the refresh token
-func (c *client) RefreshAccessToken() error {
+func (c *Client) RefreshAccessToken() error {
 	if strings.Trim(c.refreshToken, " ") == "" {
 		return NoRefeshToken
 	}
@@ -186,7 +186,7 @@ func (c *client) RefreshAccessToken() error {
 }
 
 // performRequest performs the http request to the eyowo developer environment for the client
-func (c *client) performRequest(payload map[string]interface{}, route route) (*Response, error) {
+func (c *Client) performRequest(payload map[string]interface{}, route route) (*Response, error) {
 	url := fmt.Sprintf("%s%s", c.environment, route)
 
 	data, _ := json.Marshal(payload)
