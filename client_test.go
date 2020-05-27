@@ -1,7 +1,7 @@
 package eyowo
 
 import (
-	"log"
+	// "log"
 	"net/http"
 	"testing"
 	"time"
@@ -9,26 +9,28 @@ import (
 	. "github.com/stretchr/testify/assert"
 )
 
-var testClient, _ = NewClient("ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r", "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k", SANDBOX)
+var testClient, _ = NewClient("ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r", "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k", "2348000000000", PRODUCTION)
 
+// [TODO] clarify test environment endpoint
 func init() {
-	res, err := testClient.AuthenticateUser("2349090000000", "sms")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println(res)
-	res, err = testClient.AuthenticateUser("2349090000000", "sms", "111111")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	log.Println(res)
-	log.Println(testClient.GetAccessToken())
+	// res, err := testClient.AuthenticateUser("sms")
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	// log.Println(res)
+	// res, err = testClient.AuthenticateUser("sms", "111111")
+	// if err != nil {
+	// 	log.Fatalln(err)
+	// }
+	// log.Println(res)
+	// log.Println(testClient.GetAccessToken())
 }
 
 func TestNewClient(t *testing.T) {
 	type args struct {
 		key    string
 		secret string
+		mobile string
 		env    environment
 	}
 	testcases := []struct {
@@ -40,14 +42,16 @@ func TestNewClient(t *testing.T) {
 		{
 			name: "Create a new eyowo client",
 			args: args{
-				key:    "ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r",
-				secret: "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k",
-				env:    SANDBOX,
+				key:    "edaf5c2fcf4dbd978b54272595f95ad7",
+				secret: "3184190bad4e981d3da9b741525d6a378124a3640bb20134d61ac804ce7bd56f",
+				mobile: "2348000000000",
+				env:    PRODUCTION,
 			},
 			want: &Client{
-				appKey:      "ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r",
-				appSecret:   "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k",
-				environment: SANDBOX,
+				appKey:      "edaf5c2fcf4dbd978b54272595f95ad7",
+				appSecret:   "3184190bad4e981d3da9b741525d6a378124a3640bb20134d61ac804ce7bd56f",
+				mobile:      "2348000000000",
+				environment: PRODUCTION,
 				httpClient:  &http.Client{Timeout: time.Minute},
 			},
 		},
@@ -55,15 +59,17 @@ func TestNewClient(t *testing.T) {
 			name: "Fail to create eyowo client without app key",
 			args: args{
 				secret: "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k",
-				env:    SANDBOX,
+				mobile: "2348000000000",
+				env:    PRODUCTION,
 			},
 			err: InvalidAppKey,
 		},
 		{
 			name: "Fail to create eyowo client without app secret",
 			args: args{
-				key: "ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r",
-				env: SANDBOX,
+				key:    "ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r",
+				mobile: "2348000000000",
+				env:    PRODUCTION,
 			},
 			err: InvalidAppSecret,
 		},
@@ -72,14 +78,25 @@ func TestNewClient(t *testing.T) {
 			args: args{
 				key:    "ru6nmdqf9cqpyvz7b4ce2kj938w5gc3r",
 				secret: "zvze3bfmev5pxhexuzsjcrn6pjqwbspgnh43de9nkvkjeeq45qemudmzyvpanv5k",
+				mobile: "2348000000000",
 				env:    "Bad Env",
 			},
 			err: InvalidEnvironment,
 		},
+		{
+			name: "Fail to create eyowo client with invalid mobile number",
+			args: args{
+				key:    "edaf5c2fcf4dbd978b54272595f95ad7",
+				secret: "3184190bad4e981d3da9b741525d6a378124a3640bb20134d61ac804ce7bd56f",
+				mobile: "2349090000111",
+				env:    PRODUCTION,
+			},
+			err: InvalidMobile,
+		},
 	}
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
-			tc, err := NewClient(testcase.args.key, testcase.args.secret, testcase.args.env)
+			tc, err := NewClient(testcase.args.key, testcase.args.secret, testcase.args.mobile, testcase.args.env)
 
 			Equal(t, testcase.err, err)
 			Equal(t, testcase.want, tc)
@@ -110,7 +127,7 @@ func TestClientGetAccessToken(t *testing.T) {}
 func TestClientGetRefreshToken(t *testing.T) {}
 
 func TestClientSetAccessToken(t *testing.T) {
-	client, err := NewClient("key", "secret", SANDBOX)
+	client, err := NewClient("edaf5c2fcf4dbd978b54272595f95ad7", "3184190bad4e981d3da9b741525d6a378124a3640bb20134d61ac804ce7bd56f", "2348000000000", PRODUCTION)
 	Nil(t, err)
 	initialToken := client.GetAccessToken()
 	client.SetAccessToken("new-access-token")
@@ -118,7 +135,7 @@ func TestClientSetAccessToken(t *testing.T) {
 }
 
 func TestClientSetRefreshToken(t *testing.T) {
-	client, err := NewClient("key", "secret", SANDBOX)
+	client, err := NewClient("edaf5c2fcf4dbd978b54272595f95ad7", "3184190bad4e981d3da9b741525d6a378124a3640bb20134d61ac804ce7bd56f", "2348000000000", PRODUCTION)
 	Nil(t, err)
 	initialToken := client.GetRefreshToken()
 	client.SetRefreshToken("new-refresh-token")
@@ -163,7 +180,7 @@ func TestClientGetBalance(t *testing.T) {
 	}{}
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
-			res, err := testClient.GetBalance(testcase.args.mobile)
+			res, err := testClient.GetBalance()
 
 			Equal(t, testcase.err, err)
 			Equal(t, testcase.want, res)
@@ -205,7 +222,7 @@ func TestClientAuthenticateUser(t *testing.T) {
 	}{}
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(t *testing.T) {
-			res, err := testClient.AuthenticateUser(testcase.args.mobile, testcase.args.factor, testcase.args.passcode...)
+			res, err := testClient.AuthenticateUser(testcase.args.factor, testcase.args.passcode...)
 
 			Equal(t, testcase.err, err)
 			Equal(t, testcase.want, res)

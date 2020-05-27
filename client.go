@@ -23,6 +23,8 @@ type Client struct {
 	accessToken string
 	// refreshToken is the refresh token used to refresh the client's access token
 	refreshToken string
+	// mobile is the mobile number for the client
+	mobile string
 	// environment is the environment the client is working in
 	environment environment
 	// httpClient is the underlying http client for the eyowo client
@@ -34,7 +36,7 @@ type Client struct {
 }
 
 // NewClient creates and returns a new eyowo API client
-func NewClient(appKey, appSecret string, env environment) (*Client, error) {
+func NewClient(appKey, appSecret, mobile string, env environment) (*Client, error) {
 	if strings.Trim(appKey, " ") == "" {
 		return nil, InvalidAppKey
 	}
@@ -44,12 +46,17 @@ func NewClient(appKey, appSecret string, env environment) (*Client, error) {
 	if env != SANDBOX && env != PRODUCTION {
 		return nil, InvalidEnvironment
 	}
-	return &Client{
+	c := &Client{
 		appKey:      appKey,
 		appSecret:   appSecret,
 		environment: env,
+		mobile:      mobile,
 		httpClient:  &http.Client{Timeout: defaultTimeout},
-	}, nil
+	}
+	if res, err := c.ValidateUser(c.mobile); err != nil || !res.Success {
+		return nil, InvalidMobile
+	}
+	return c, nil
 }
 
 // HasValidToken validates whether or not the client has a valid access token
@@ -60,6 +67,11 @@ func (c *Client) HasValidToken() bool {
 // GetAccessToken returns the client's access token
 func (c *Client) GetAccessToken() string {
 	return c.accessToken
+}
+
+// GetMobile returns the client's mobile number
+func (c *Client) GetMobile() string {
+	return c.mobile
 }
 
 // GetRefreshToken returns the client's refresh token
@@ -94,9 +106,9 @@ func (c *Client) BuyVTU(recipientMobileNumber string, amount uint, provider prov
 }
 
 // GetBalance returns the account balance for an eyowo account
-func (c *Client) GetBalance(mobileNumber string) (*Response, error) {
+func (c *Client) GetBalance() (*Response, error) {
 	payload := map[string]interface{}{
-		"mobile": mobileNumber,
+		"mobile": c.mobile,
 	}
 	return c.performRequest(payload, BALANCE)
 }
@@ -104,15 +116,15 @@ func (c *Client) GetBalance(mobileNumber string) (*Response, error) {
 // ValidateUser valdates whether or not a mobile number has an associated eyowo account
 func (c *Client) ValidateUser(mobileNumber string) (*Response, error) {
 	payload := map[string]interface{}{
-		"mobile": mobileNumber,
+		"mobile": c.mobile,
 	}
 	return c.performRequest(payload, VALIDATION)
 }
 
 // AuthenticateUser performs an authentication flow for a user
-func (c *Client) AuthenticateUser(mobileNumber, factor string, passcode ...string) (*Response, error) {
+func (c *Client) AuthenticateUser(factor string, passcode ...string) (*Response, error) {
 	payload := map[string]interface{}{
-		"mobile": mobileNumber,
+		"mobile": c.mobile,
 		"factor": factor,
 	}
 	if len(passcode) != 0 {
