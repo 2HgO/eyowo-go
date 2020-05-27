@@ -23,4 +23,7 @@ const (
 
 	// REFRESH is the eyowo developer API route to refresh a user's access token
 	REFRESH route = `/v1/users/accessToken`
+
+	// BANKS is the eyowo developer API route to fetch nigerian bank names and corresponding bank codes
+	BANKS route = `/v1/queries/banks`
 )

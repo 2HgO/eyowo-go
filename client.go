@@ -197,6 +197,29 @@ func (c *Client) RefreshAccessToken() error {
 	return nil
 }
 
+// GetBanks fetches a list of nigerian banks and their corresponding bank code
+func (c *Client) GetBanks() (*Response, error) {
+	url := fmt.Sprintf("%s%s", c.environment, BANKS)
+
+	ctx, cancel := context.WithTimeout(context.TODO(), c.httpClient.Timeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	req.Header.Set(`Content-Type`, `application/json`)
+	req.Header.Set(`X-App-Key`, c.appKey)
+	req.Header.Set(`X-App-Wallet-Access-Token`, c.accessToken)
+
+	res, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	eyowoRes := new(Response)
+	err = json.NewDecoder(res.Body).Decode(eyowoRes)
+	eyowoRes.Status = res.StatusCode
+	return eyowoRes, err
+}
+
 // performRequest performs the http request to the eyowo developer environment for the client
 func (c *Client) performRequest(payload map[string]interface{}, route route) (*Response, error) {
 	url := fmt.Sprintf("%s%s", c.environment, route)
